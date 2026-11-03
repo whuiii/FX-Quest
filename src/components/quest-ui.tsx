@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { Coins, Sparkles, Star, Map, FlaskConical, Trophy, Info } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
@@ -131,12 +131,17 @@ export function Page({
   fullWidth?: boolean;
   wide?: boolean;
 }) {
+  // Hide the navigation only on the welcome route.
+  const isWelcomePage = useRouterState({
+    select: (state) => state.location.pathname.replace(/\/+$/, "") === "",
+  });
+
   // Preserve the existing API; role banner is intentionally hidden.
   void showRole;
   void RoleBanner;
   return (
     <div className="flex min-h-dvh w-full flex-col overflow-x-clip bg-sky-gradient">
-      <TopNav />
+      {!isWelcomePage && <TopNav />}
 
       <main
         className={cn(
@@ -161,9 +166,32 @@ export function Page({
         {children}
       </main>
 
-      <footer className="px-4 py-6 text-center text-xs text-muted-foreground">
-        Educational simulation • Illustrative, hypothetical rates only • Not investment advice
-      </footer>
+      <footer className="fx-adventure-footer">
+  <div className="fx-footer-notice">
+    <span className="fx-footer-leaf" aria-hidden="true">
+      🌿
+    </span>
+
+    <p>
+      <span className="fx-footer-highlight">
+        Learn. Explore. Grow.
+      </span>
+
+      <span className="fx-footer-separator"> ✦ </span>
+
+      Educational simulation with illustrative,
+      hypothetical rates only.
+
+      <span className="fx-footer-disclaimer">
+        Not investment advice.
+      </span>
+    </p>
+
+    <span className="fx-footer-leaf" aria-hidden="true">
+      🌿
+    </span>
+  </div>
+</footer>
     </div>
   );
 }

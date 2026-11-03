@@ -1,5 +1,6 @@
 
 import { useEffect } from "react";
+
 import {
   Outlet,
   Link,
@@ -9,6 +10,22 @@ import {
 } from "@tanstack/react-router";
 
 import type { QueryClient } from "@tanstack/react-query";
+
+// ====================================================
+// FX QUEST — PIP AI CHAT WIDGET
+// ====================================================
+// Global AI companion powered by Google Gemini.
+//
+// The widget manages:
+// - Floating Pip launcher
+// - Chat panel open/close state
+// - Selected role and mission context
+// - Visibility across adventure pages
+//
+// It does not modify the game's existing functionality.
+// ====================================================
+
+import PipChatWidget from "../components/pip-ai/PipChatWidget";
 
 // ----------------------------------------------------
 // FX QUEST - 404 PAGE
@@ -119,8 +136,19 @@ export const Route = createRootRouteWithContext<{
 // ----------------------------------------------------
 // The Outlet renders the currently selected page:
 // Welcome, Characters, Map, Missions, and so on.
+//
+// PipChatWidget is mounted outside the Outlet so its
+// chat state is preserved during normal route changes.
 // ----------------------------------------------------
 
 function RootComponent() {
-  return <Outlet />;
+  return (
+    <>
+      {/* Existing FX Quest page */}
+      <Outlet />
+
+      {/* Global Gemini-powered Pip AI assistant */}
+      <PipChatWidget />
+    </>
+  );
 }

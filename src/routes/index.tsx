@@ -1,24 +1,13 @@
 
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
-import { Page, Panel, Pip } from "@/components/quest-ui";
+import { Page } from "@/components/quest-ui";
 import { useGame, level, CHAPTERS } from "@/lib/game-store";
-import welcome from "@/assets/welcome-meadow.jpg";
-import pip from "@/assets/pip.png";
 import { roleInfo } from "@/lib/roles";
 
-// ----------------------------------------------------
-// FX QUEST - WELCOME PAGE
-// ----------------------------------------------------
-// Responsive full-width Welcome page.
-//
-// Features:
-// - Full-width landscape without side gaps
-// - Responsive text and character positioning
-// - Original Lovable design and animations
-// - Role-based adventure navigation
-// - Existing game progress and statistics
-// ----------------------------------------------------
+import welcome from "@/assets/welcome-meadow.jpg";
+import explorerBg from "@/assets/bg_bottom.png";
+import pip from "@/assets/pip.png";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -42,344 +31,306 @@ export const Route = createFileRoute("/")({
       },
     ],
   }),
-
   component: Index,
 });
 
-// ----------------------------------------------------
-// ECONOMIC FORCES
-// ----------------------------------------------------
-
 const FORCES = [
   {
-    emoji: "🎈",
+    emoji: "🪙",
+    kind: "inflation",
     title: "Inflation",
     text: "Prices rise over time — your ringgit buys a little less each year.",
-    tone: "bg-peach",
   },
   {
     emoji: "🌱",
+    kind: "interest",
     title: "Interest rates",
     text: "Savings grow — but is growth faster than prices? That's your real return.",
-    tone: "bg-mint",
   },
   {
     emoji: "💱",
+    kind: "currency",
     title: "Currency moves",
     text: "MYR/USD changes how many ringgit one US dollar costs.",
-    tone: "bg-lavender",
   },
 ];
-
-// ----------------------------------------------------
-// MAIN WELCOME PAGE
-// ----------------------------------------------------
 
 function Index() {
   const g = useGame();
   const done = g.completed.length;
 
+  const progress = CHAPTERS.length
+    ? Math.min(100, (done / CHAPTERS.length) * 100)
+    : 0;
+
   return (
     <Page showRole={false} fullWidth>
+      <main className="fx-welcome-page">
 
-      {/* ==============================================
-          FULL-WIDTH HERO LANDSCAPE
-      ============================================== */}
+        {/* =========================================
+            WELCOME HERO
+        ========================================= */}
+        <section className="fx-hero relative flex min-h-[100svh] w-full items-center justify-center overflow-hidden text-center max-sm:items-start">
 
-     <section
-  className="
-    relative
-    flex
-    min-h-[max(620px,calc(100dvh-64px))]
-    w-full
-    items-center
-    justify-center
-    overflow-hidden
-    text-center
-    max-sm:min-h-[calc(100dvh-84px)]
-    max-sm:items-start
-  "
->
-
-        {/* Background image */}
-        <img
-          src={welcome}
-          alt="A sunny path to the academy, airport and seaside shop in Currency Kingdom"
-          className="
-            absolute
-            inset-0
-            h-full
-            w-full
-            object-cover
-            object-center
-          "
-        />
-
-        {/* Soft overlay for text readability */}
-        <div
-          className="
-            pointer-events-none
-            absolute
-            inset-0
-            bg-gradient-to-b
-            from-background/60
-via-background/35
-to-transparent
-          "
-        />
-
-        {/* ==========================================
-            CENTERED WELCOME CONTENT
-        ========================================== */}
-
-        
-<div
-  className="
-    relative
-    z-10
-    mx-auto
-    flex
-    w-full
-    max-w-3xl
-    flex-col
-    items-center
-    justify-center
-    px-5
-    py-10
-    sm:px-8
-    md:py-12
-    max-sm:pt-16
-    max-sm:pb-10
-  "
->
-
-
-          {/* Welcome label */}
-          <span
-            className="
-              text-xs
-              font-bold
-              text-primary
-              sm:text-sm
-              md:text-base
-            "
-          >
-            Welcome to Currency Kingdom
-          </span>
-
-          {/* Main heading */}
-          <h1
-            className="
-              mt-2
-              font-display
-              text-5xl
-              font-bold
-              leading-tight
-              text-primary
-              sm:text-6xl
-              lg:text-7xl
-            "
-          >
-            FX Quest
-          </h1>
-
-          {/* Subtitle */}
-          <p
-            className="
-              mt-3
-              max-w-xl
-              text-base
-              font-semibold
-              text-foreground
-              sm:text-lg
-              md:text-xl
-            "
-          >
-            One little dream. A world of possibilities.
-          </p>
-
-          {/* Description */}
-          <p
-            className="
-              mt-3
-              max-w-xl
-              text-sm
-              leading-relaxed
-              text-foreground
-              sm:text-base
-              md:text-lg
-            "
-          >
-            A university place, a cherry-blossom holiday,
-            a thriving little shop. Choose your story —
-            Pip is ready to help your ringgit find its way.
-          </p>
-
-          {/* Pip character */}
           <img
-            src={pip}
-            alt="Pip is ready for your adventure"
-            className="
-              my-4
-              h-24
-              w-24
-              animate-float
-              object-contain
-              sm:h-28
-              sm:w-28
-              lg:h-32
-              lg:w-32
-            "
+            src={welcome}
+            alt="Currency Kingdom with an academy, airport, seaside shop and flowers"
+            className="absolute inset-0 h-full w-full object-cover object-center"
           />
 
-          {/* Adventure buttons */}
+          {/* Light overlay for readability */}
           <div
-            className="
-              flex
-              w-full
-              flex-col
-              items-center
-              justify-center
-              gap-3
-              sm:w-auto
-              sm:flex-row
-            "
-          >
-            <Button
-              asChild
-              variant="quest"
-              size="xl"
-              className="w-full px-6 sm:w-auto sm:px-10"
-            >
-              <Link to={g.role ? "/map" : "/characters"}>
-                {g.role
-                  ? "Continue Adventure"
-                  : "Start Adventure"}
-              </Link>
-            </Button>
+            className="pointer-events-none absolute inset-0"
+            style={{
+              background:
+                "linear-gradient(to bottom, rgba(235,250,255,.48) 0%, rgba(235,250,255,.25) 48%, rgba(235,250,255,.05) 75%)",
+            }}
+          />
 
-            {g.role && (
+          {/* Gradually dissolve the welcome image */}
+          <div
+            className="fx-hero-fade pointer-events-none absolute inset-x-0 bottom-0 z-[1]"
+            aria-hidden="true"
+          />
+
+          {/* Welcome content */}
+          <div className="relative z-10 mx-auto flex w-full max-w-3xl flex-col items-center justify-center px-5 py-10 sm:px-8 md:py-12 max-sm:pt-16">
+
+            <span className="text-xs font-bold text-primary sm:text-sm md:text-base">
+              Welcome to Currency Kingdom
+            </span>
+
+            <h1 className="mt-2 font-display text-5xl font-bold leading-tight text-primary sm:text-6xl lg:text-7xl">
+              FX Quest
+            </h1>
+
+            <p className="mt-3 max-w-xl text-base font-semibold text-foreground sm:text-lg md:text-xl">
+              One little dream. A world of possibilities.
+            </p>
+
+            <p className="mt-3 max-w-xl text-sm leading-relaxed text-foreground sm:text-base md:text-lg">
+              A university place, a cherry-blossom holiday,
+              a thriving little shop. Choose your story —
+              Pip is ready to help your ringgit find its way.
+            </p>
+
+            <img
+              src={pip}
+              alt="Pip is ready for your adventure"
+              className="my-4 h-24 w-24 animate-float object-contain sm:h-28 sm:w-28 lg:h-32 lg:w-32"
+            />
+
+            <div className="flex w-full flex-col items-center justify-center gap-3 sm:w-auto sm:flex-row">
               <Button
                 asChild
-                variant="bubble"
+                variant="quest"
                 size="xl"
-                className="w-full max-w-[290px] px-6 sm:w-auto sm:max-w-none sm:px-10"
+                className="w-full px-6 sm:w-auto sm:px-10"
               >
-                <Link to="/characters">
-                  Change Role
+                <Link to={g.role ? "/map" : "/characters"}>
+                  {g.role ? "Continue Adventure" : "Start Adventure"}
                 </Link>
               </Button>
+
+              {g.role && (
+                <Button
+                  asChild
+                  variant="bubble"
+                  size="xl"
+                  className="w-full max-w-[290px] px-6 sm:w-auto sm:max-w-none sm:px-10"
+                >
+                  <Link to="/characters">Change Role</Link>
+                </Button>
+              )}
+            </div>
+
+            {g.role && (
+              <p className="mt-4 text-xs font-bold text-foreground sm:text-sm">
+                {roleInfo(g.role)?.emoji}{" "}
+                {roleInfo(g.role)?.name} · {done} quests cleared
+              </p>
             )}
           </div>
+        </section>
 
-          {/* Current role information */}
-          {g.role && (
-            <p className="mt-4 text-xs font-bold text-foreground sm:text-sm">
-              {roleInfo(g.role)?.emoji}{" "}
-              {roleInfo(g.role)?.name} · {done} quests cleared
-            </p>
-          )}
+        {/* =========================================
+            EXPLORER'S CORNER
+        ========================================= */}
+        <section
+          className="explorer-world relative isolate w-full overflow-hidden"
+          aria-labelledby="explorer-heading"
+          style={{
+            ["--explorer-image" as string]: `url("${explorerBg}")`,
+          }}
+        >
+          {/* Soft floral image background */}
+          <div className="explorer-image" aria-hidden="true" />
 
-        </div>
-      </section>
+          {/* Soft ambient light */}
+          <div className="explorer-glow" aria-hidden="true" />
 
-      {/* ==============================================
-          EDUCATIONAL CONTENT
-      ============================================== */}
+          {/* Decorative stars */}
+          <div className="explorer-stars" aria-hidden="true">
+            ✦ ✧ ✦
+          </div>
 
-      <div
-        className="
-          mx-auto
-          w-full
-          max-w-6xl
-          px-4
-          py-8
-          sm:px-6
-          lg:px-8
-        "
-      >
+          <div className="relative z-10 mx-auto max-w-[1440px] px-4 pb-12 pt-12 sm:px-7 sm:pt-14 lg:px-12 lg:pb-16 lg:pt-16">
 
-        {/* Economic forces */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {FORCES.map((f) => (
-            <div
-              key={f.title}
-              className={`${f.tone} rounded-3xl p-5 shadow-soft`}
-            >
-              <div className="text-3xl" aria-hidden>
-                {f.emoji}
+            {/* Explorer title */}
+            <header className="mb-12 flex flex-col items-center text-center sm:mb-14">
+              <div className="explorer-ribbon">
+                <span aria-hidden="true">🧭</span>
+
+                <h2
+                  id="explorer-heading"
+                  className="font-display text-[clamp(1.65rem,3.6vw,3.3rem)] font-extrabold leading-tight tracking-tight"
+                >
+                  The Explorer’s Corner
+                </h2>
+
+                <span aria-hidden="true">✨</span>
               </div>
 
-              <h2 className="mt-2 font-display text-xl font-semibold">
-                {f.title}
-              </h2>
-
-              <p className="mt-1 text-sm leading-relaxed">
-                {f.text}
+              <p className="explorer-subtitle font-display">
+                ✨ Little lessons for your big adventure! ✨
               </p>
+            </header>
+
+            {/* Financial lessons */}
+            <div className="grid grid-cols-1 gap-10 md:grid-cols-3 md:gap-5 lg:gap-7">
+              {FORCES.map((force) => (
+                <article
+                  key={force.title}
+                  className={`explorer-lesson explorer-lesson-${force.kind}`}
+                >
+                  <div
+                    className="explorer-lesson-icon"
+                    aria-hidden="true"
+                  >
+                    {force.emoji}
+                  </div>
+
+                  <span
+                    className="explorer-lesson-sparkle"
+                    aria-hidden="true"
+                  >
+                    ✦
+                  </span>
+
+                  <h3 className="font-display text-[clamp(1.35rem,2vw,1.8rem)] font-extrabold">
+                    {force.title}
+                  </h3>
+
+                  <p className="mx-auto mt-2 max-w-[330px] text-sm leading-relaxed sm:text-base">
+                    {force.text}
+                  </p>
+
+                  <span
+                    className="explorer-cloud explorer-cloud-left"
+                    aria-hidden="true"
+                  >
+                    ☁
+                  </span>
+
+                  <span
+                    className="explorer-cloud explorer-cloud-right"
+                    aria-hidden="true"
+                  >
+                    ☁
+                  </span>
+                </article>
+              ))}
             </div>
-          ))}
-        </div>
 
-        {/* ==========================================
-            PIP MESSAGE + JOURNEY SUMMARY
-        ========================================== */}
+            {/* Pip and Passport */}
+            <div className="mt-12 grid items-center gap-10 lg:mt-16 lg:grid-cols-[1.08fr_1fr] lg:gap-8">
 
-        <div className="mt-8 grid grid-cols-1 items-start gap-4 md:grid-cols-[1.4fr_1fr]">
+              {/* Pip's message */}
+              <div className="relative flex items-end gap-0 sm:gap-2">
+                <img
+                  src={pip}
+                  alt="Pip, your cheerful currency explorer"
+                  className="explorer-pip relative z-10 -mr-5 h-32 w-32 shrink-0 object-contain drop-shadow-xl sm:-mr-8 sm:h-44 sm:w-44 lg:h-48 lg:w-48"
+                />
 
-          {/* Pip message */}
-          <Pip mood="excited">
-            Hi! I'm <b>Pip</b>, your currency-explorer buddy.
-            Every choice you make changes your virtual ringgit
-            budget — and I'll show you exactly why.
-          </Pip>
+                <div className="explorer-speech relative min-w-0 flex-1 px-5 pb-6 pt-8 sm:px-7 sm:pb-8 sm:pt-10">
+                  <div className="explorer-wood-title font-display">
+                    A Little Tip from Pip! ⭐
+                  </div>
 
-          {/* Journey statistics */}
-          <Panel>
-            <h2 className="font-display text-lg font-semibold">
-              Your journey
-            </h2>
-
-            <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-
-              {/* Level */}
-              <div>
-                <div className="font-display text-2xl font-bold text-primary">
-                  {level(g.xp)}
-                </div>
-
-                <div className="text-xs text-muted-foreground">
-                  Level
+                  <p className="text-sm leading-relaxed text-[#35234a] sm:text-base lg:text-lg">
+                    Hi! I’m <strong>Pip</strong>, your currency-explorer buddy.
+                    Every choice you make changes your virtual ringgit budget
+                    — and I’ll show you exactly why.
+                  </p>
                 </div>
               </div>
 
-              {/* Completed worlds */}
-              <div>
-                <div className="font-display text-2xl font-bold text-primary">
-                  {done}/{CHAPTERS.length}
+              {/* Adventure Passport */}
+              <div className="explorer-passport relative px-5 pb-5 pt-6 sm:px-7 sm:pb-7 sm:pt-7">
+                <div className="mb-5 flex items-center gap-3">
+                  <span
+                    className="text-4xl drop-shadow-sm sm:text-5xl"
+                    aria-hidden="true"
+                  >
+                    📕
+                  </span>
+
+                  <h3 className="font-display text-xl font-extrabold text-[#4b267a] sm:text-2xl">
+                    My Adventure Passport
+                  </h3>
                 </div>
 
-                <div className="text-xs text-muted-foreground">
-                  Worlds
+                <div className="grid grid-cols-3 divide-x divide-[#e8c79e] text-center">
+                  <div className="px-1">
+                    <div className="text-3xl" aria-hidden="true">⭐</div>
+                    <div className="font-display text-2xl font-extrabold text-[#522b35]">
+                      {level(g.xp)}
+                    </div>
+                    <div className="text-xs text-[#654963] sm:text-sm">
+                      Level
+                    </div>
+                  </div>
+
+                  <div className="px-1">
+                    <div className="text-3xl" aria-hidden="true">🗺️</div>
+                    <div className="font-display text-2xl font-extrabold text-[#522b35]">
+                      {done}/{CHAPTERS.length}
+                    </div>
+                    <div className="text-xs text-[#654963] sm:text-sm">
+                      Worlds
+                    </div>
+                  </div>
+
+                  <div className="px-1">
+                    <div className="text-3xl" aria-hidden="true">🏅</div>
+                    <div className="font-display text-2xl font-extrabold text-[#522b35]">
+                      {g.badges.length}
+                    </div>
+                    <div className="text-xs text-[#654963] sm:text-sm">
+                      Badges
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  className="mt-5 h-4 overflow-hidden rounded-full border-2 border-[#e6b47a] bg-[#efd4a4]"
+                  role="progressbar"
+                  aria-label="Worlds completed"
+                  aria-valuenow={done}
+                  aria-valuemin={0}
+                  aria-valuemax={CHAPTERS.length}
+                >
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-[#45cfa1] to-[#a6e86c] transition-all duration-700"
+                    style={{ width: `${progress}%` }}
+                  />
                 </div>
               </div>
-
-              {/* Badges */}
-              <div>
-                <div className="font-display text-2xl font-bold text-primary">
-                  {g.badges.length}
-                </div>
-
-                <div className="text-xs text-muted-foreground">
-                  Badges
-                </div>
-              </div>
-
             </div>
-          </Panel>
-
-        </div>
-      </div>
+          </div>
+        </section>
+      </main>
     </Page>
   );
 }
