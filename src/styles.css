@@ -602,3 +602,38 @@
     margin-left: 0;
   }
 }
+
+
+/* ==========================================
+   FX QUEST — NATURAL & SMOOTH PAGE TRANSITION
+   ========================================== */
+
+@keyframes fxq-page-enter {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0);
+  }
+
+  45% {
+    opacity: 0.85;
+  }
+
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.fxq-page-enter {
+  animation: fxq-page-enter 0.65s
+    cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Accessibility — reduce motion when requested */
+@media (prefers-reduced-motion: reduce) {
+  .fxq-page-enter {
+    animation: none !important;
+    opacity: 1;
+    transform: none;
+  }
+}

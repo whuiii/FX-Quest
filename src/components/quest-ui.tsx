@@ -35,6 +35,10 @@ export function Pip({ mood = "excited", children, size = 96, className }: { mood
 /* ---------------- Top nav ---------------- */
 
 /* ---------------- Top nav ---------------- */
+/* Paste this over the existing TopNav in quest-ui.tsx.
+   It uses the same imports you already have: Link, useGame, level, pip,
+   AvatarView and the lucide icons Map, FlaskConical, Trophy, Coins, Star. */
+
 export function TopNav() {
   const g = useGame();
 
@@ -46,61 +50,81 @@ export function TopNav() {
   ] as const;
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b-2 border-border bg-card/95 backdrop-blur-md">
+    <header className="sticky top-0 z-40 w-full border-b-[3px] border-[#f9d777] bg-[linear-gradient(180deg,#f4fcff_0%,#d6f2fd_100%)] shadow-[0_6px_18px_rgba(33,105,161,0.16)]">
+      {/* Soft clouds behind the bar, purely decorative. */}
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
+        <span className="absolute -left-8 -top-5 h-14 w-56 rounded-full bg-white/80 blur-xl" />
+        <span className="absolute left-[42%] -top-7 h-14 w-64 rounded-full bg-white/70 blur-xl" />
+        <span className="absolute -right-6 -top-4 h-14 w-56 rounded-full bg-white/80 blur-xl" />
+      </div>
+
       {/* Match <Page wide> (1500px) without overflowing narrow screens. */}
-      <div className="mx-auto grid w-full max-w-[1500px] min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2 px-4 py-2.5 sm:px-6 lg:flex lg:gap-4 lg:px-8 xl:gap-6">
+      <div className="relative mx-auto grid w-full max-w-[1500px] min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2 px-4 py-2.5 sm:px-6 lg:flex lg:gap-4 lg:px-8 xl:gap-6">
         {/* Brand stays on the first row at mobile and tablet widths. */}
         <Link
           to="/"
           aria-label="FX Quest home"
-          className="flex min-w-0 shrink-0 items-center gap-2 rounded-xl font-display font-extrabold text-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring"
+          className="group flex min-w-0 shrink-0 items-center gap-2.5 rounded-full focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring"
         >
-          <img src={pip} alt="" width={40} height={40} className="h-9 w-9 shrink-0 object-contain sm:h-10 sm:w-10" />
-          <span className="truncate text-lg sm:text-xl">FX Quest</span>
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-[3px] border-[#f7d66d] bg-white shadow-[0_3px_8px_rgba(21,81,130,.2)] transition-transform duration-200 group-hover:rotate-[-6deg] group-hover:scale-105 sm:h-11 sm:w-11">
+            <img src={pip} alt="" width={40} height={40} className="h-8 w-8 object-contain sm:h-9 sm:w-9" />
+          </span>
+          <span
+            className="truncate font-display text-xl font-extrabold tracking-tight text-white sm:text-2xl"
+            style={{
+              WebkitTextStroke: "5px #2b6fd6",
+              paintOrder: "stroke fill",
+              textShadow: "0 3px 0 rgba(30,70,160,.3)",
+            }}
+          >
+            FX Quest
+          </span>
         </Link>
 
         {/* On small screens this becomes its own full-width second row.
             At desktop it sits between the brand and the player statistics. */}
         <nav
           aria-label="Main navigation"
-          className="order-3 col-span-2 grid min-w-0 w-full grid-cols-3 gap-1 rounded-2xl bg-muted/50 p-1 lg:order-none lg:col-auto lg:ml-2 lg:flex lg:w-auto lg:flex-1 lg:items-center lg:justify-center lg:gap-2 lg:bg-transparent lg:p-0"
+          className="order-3 col-span-2 grid min-w-0 w-full grid-cols-3 gap-1 rounded-2xl border-2 border-[#efc478] bg-[#fff5dc]/95 p-1 shadow-[0_3px_0_rgba(187,125,61,.18)] lg:order-none lg:col-auto lg:mx-auto lg:flex lg:w-auto lg:items-center lg:gap-1.5 lg:rounded-full"
         >
           {items.map(({ to, label, mobileLabel, icon: Icon }) => (
             <Link
               key={to}
               to={to}
               aria-label={label}
-              className="flex min-h-11 min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-1.5 py-2 text-muted-foreground transition-all duration-200 hover:bg-white/80 hover:text-foreground focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring sm:flex-row sm:gap-2 sm:px-3 lg:min-h-10 lg:rounded-full lg:px-4"
-              activeProps={{ className: "bg-accent text-accent-foreground shadow-sm" }}
+              className="flex min-h-11 min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-1.5 py-2 font-bold text-[#52317b] transition-all duration-200 hover:bg-white focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring data-[status=active]:bg-gradient-to-b data-[status=active]:from-[#4aa3f5] data-[status=active]:to-[#2b6fd6] data-[status=active]:text-white data-[status=active]:shadow-[0_3px_0_#1f4fa3] sm:flex-row sm:gap-2 sm:px-4 lg:min-h-10 lg:rounded-full lg:px-5"
             >
               <Icon className="h-[18px] w-[18px] shrink-0" aria-hidden="true" />
-              <span className="text-[11px] font-semibold sm:hidden">{mobileLabel}</span>
-              <span className="hidden truncate whitespace-nowrap text-sm font-semibold sm:inline">{label}</span>
+              <span className="text-[11px] sm:hidden">{mobileLabel}</span>
+              <span className="hidden truncate whitespace-nowrap text-sm sm:inline">{label}</span>
             </Link>
           ))}
         </nav>
 
         {/* Player status stays visible on every device. */}
-        <div className="col-start-2 row-start-1 flex shrink-0 items-center justify-end gap-1.5 text-sm font-bold sm:gap-2 lg:order-last lg:ml-auto lg:col-auto lg:row-auto">
-          <span className="hidden items-center gap-1.5 whitespace-nowrap rounded-full bg-sunny px-3 py-1.5 text-sunny-foreground sm:inline-flex">
+        <div className="col-start-2 row-start-1 flex shrink-0 items-center justify-end gap-1.5 text-sm font-extrabold sm:gap-2 lg:order-last lg:ml-auto lg:col-auto lg:row-auto">
+          <span className="hidden items-center gap-1.5 whitespace-nowrap rounded-full border-2 border-white/80 bg-gradient-to-b from-[#fbd461] to-[#f6b93b] px-3 py-1.5 text-[#52317b] shadow-[0_3px_0_rgba(174,117,58,.35)] sm:inline-flex">
             <Coins className="h-4 w-4" aria-hidden="true" />
             {g.coins}
             <span className="hidden xl:inline">coins</span>
+            <span className="sr-only xl:hidden">coins</span>
           </span>
-          <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-secondary px-2.5 py-1.5 text-secondary-foreground sm:px-3">
-            <Star className="h-4 w-4" aria-hidden="true" />
+
+          <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full border-2 border-white/80 bg-gradient-to-b from-[#b79bf5] to-[#8a63e8] px-2.5 py-1.5 text-white shadow-[0_3px_0_#6b46c1] sm:px-3">
+            <Star className="h-4 w-4 fill-current" aria-hidden="true" />
             Lv {level(g.xp)}
             <span className="hidden xl:inline">· {g.xp} XP</span>
           </span>
+
           <Link
             to="/avatar"
             aria-label="Edit avatar"
             title="Edit avatar"
-            className="shrink-0 rounded-full focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring"
+            className="group relative shrink-0 rounded-full focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring"
           >
             {/* Your saved chibi avatar, or its default preset. */}
-            <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border-2 border-amber-300 bg-gradient-to-b from-sky-100 to-cyan-200 shadow-sm sm:h-11 sm:w-11">
-              <AvatarView avatar={g.avatar} size={42} viewBox="22 -4 156 156" />
+            <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border-[3px] border-[#f7d66d] bg-gradient-to-b from-[#e3f9ff] to-[#b8ecfb] shadow-[0_3px_8px_rgba(21,81,130,.25)] transition-transform duration-200 group-hover:scale-105 sm:h-12 sm:w-12">
+              <AvatarView avatar={g.avatar} size={46} viewBox="22 -4 156 156" decorative />
             </div>
           </Link>
         </div>
@@ -108,7 +132,6 @@ export function TopNav() {
     </header>
   );
 }
-
 
 function RoleBanner() {
   const g = useGame();
@@ -143,53 +166,67 @@ export function Page({
     <div className="flex min-h-dvh w-full flex-col overflow-x-clip bg-sky-gradient">
       {!isWelcomePage && <TopNav />}
 
-      <main
-        className={cn(
-          "w-full flex-1",
+      
+<main
+  className={cn(
+    "w-full flex-1",
 
-          // Preserve full-width mode for the Adventure Map and other pages.
-          fullWidth
-            ? "px-0 py-0"
-            : cn(
-                "mx-auto px-4 py-8 sm:px-6 lg:px-8",
+    // Smooth fantasy page entrance animation
+    "fxq-page-enter",
 
-                // Wider layout is opt-in, so existing pages stay unchanged.
-                wide
-                  ? "max-w-[1500px]"
-                  : "max-w-6xl"
-              ),
+    // Preserve full-width mode for the Adventure Map and other pages.
+    fullWidth
+      ? "px-0 py-0"
+      : cn(
+          "mx-auto px-4 py-8 sm:px-6 lg:px-8",
 
-          className
-        )}
-      >
-        {/* RoleBanner remains disabled as in your current version. */}
-        {children}
-      </main>
+          // Wider layout is opt-in, so existing pages stay unchanged.
+          wide
+            ? "max-w-[1500px]"
+            : "max-w-6xl"
+        ),
 
-      <footer className="fx-adventure-footer">
-  <div className="fx-footer-notice">
-    <span className="fx-footer-leaf" aria-hidden="true">
-      🌿
-    </span>
+    className
+  )}
+>
+  {/* RoleBanner remains disabled as in your current version. */}
+  {children}
+</main>
 
-    <p>
-      <span className="fx-footer-highlight">
-        Learn. Explore. Grow.
+
+      
+<footer className="relative w-full overflow-hidden border-t-[3px] border-[#f9d777] bg-[linear-gradient(180deg,#e6f8ff_0%,#cdeffc_100%)]">
+  {/* Soft clouds, decorative only. They add no height. */}
+  <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+    <span className="absolute -left-10 -bottom-6 h-12 w-56 rounded-full bg-white/80 blur-xl" />
+    <span className="absolute left-[45%] -bottom-8 h-12 w-64 rounded-full bg-white/70 blur-xl" />
+    <span className="absolute -right-8 -bottom-6 h-12 w-56 rounded-full bg-white/80 blur-xl" />
+  </div>
+
+  <div className="relative mx-auto flex w-full max-w-[1500px] items-center justify-center px-4 py-2.5 sm:px-6 lg:px-8">
+    <div className="flex max-w-full items-center gap-2.5 rounded-full border-2 border-[#efc478] bg-[#fff5dc]/95 px-4 py-1.5 shadow-[0_3px_0_rgba(187,125,61,.18)] sm:gap-3 sm:px-5">
+      <span className="hidden text-base sm:inline" aria-hidden="true">
+        🌿
       </span>
 
-      <span className="fx-footer-separator"> ✦ </span>
+      <p className="text-center text-[11px] font-semibold leading-snug text-[#624c88] sm:text-xs lg:text-[13px]">
+        <span className="font-display font-extrabold text-[#2b6fd6]">Learn. Explore. Grow.</span>
 
-      Educational simulation with illustrative,
-      hypothetical rates only.
+        <span className="mx-1.5 text-[#f0b93a]" aria-hidden="true">
+          ✦
+        </span>
 
-      <span className="fx-footer-disclaimer">
-        Not investment advice.
+        Educational simulation with illustrative, hypothetical rates only.
+
+        <span className="ml-1.5 inline-block rounded-full bg-[#fff0c2] px-2 py-0.5 text-[10px] font-extrabold text-[#8a5a00] sm:text-[11px]">
+          Not investment advice
+        </span>
+      </p>
+
+      <span className="hidden text-base sm:inline" aria-hidden="true">
+        🌿
       </span>
-    </p>
-
-    <span className="fx-footer-leaf" aria-hidden="true">
-      🌿
-    </span>
+    </div>
   </div>
 </footer>
     </div>

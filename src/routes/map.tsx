@@ -1,43 +1,15 @@
-
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Lock, Check, Star, ArrowRight, RefreshCw, Target, Sparkles } from "lucide-react";
-
 import { Page, Pip, AvatarView } from "@/components/quest-ui";
 import { Button } from "@/components/ui/button";
-
 import { useGame, CHAPTERS } from "@/lib/game-store";
-import {
-  roleInfo,
-  mapChapters,
-  chapterUnlocked,
-} from "@/lib/roles";
-
+import { roleInfo, mapChapters, chapterUnlocked } from "@/lib/roles";
 import { cn } from "@/lib/utils";
 
-import worldMap from "@/assets/world-map.jpg";
-import travellerMap from "@/assets/traveller-map.jpg";
-import businessMap from "@/assets/business-map.jpg";
-import adventureHeaderBg from "@/assets/fxquest-map-header-bg_1.png";
-
-// ----------------------------------------------------
-// FX QUEST - RESPONSIVE ADVENTURE MAP
-// ----------------------------------------------------
-// Desktop:
-// - Wider map with reduced empty space
-// - Full image visible without cropping
-// - Four mission markers over the illustration
-//
-// Mobile:
-// - Full-width proportional image
-// - Compact mission markers displayed on the map
-// - Mission cards remain accessible
-//
-// Preserves:
-// - Role-based maps and avatars
-// - Chapter unlocking
-// - Completed missions
-// - Navigation and game progress
-// ----------------------------------------------------
+// Keep the asset names already used in your project.
+import worldMap from "@/assets/world-map_full.png";
+import travellerMap from "@/assets/traveller_map_test.png";
+import businessMap from "@/assets/business-map.png";
 
 export const Route = createFileRoute("/map")({
   head: () => ({
@@ -45,54 +17,106 @@ export const Route = createFileRoute("/map")({
       { title: "Your Adventure Map — FX Quest" },
       {
         name: "description",
-        content:
-          "Explore your role's adventure, resume missions and collect learning rewards.",
+        content: "Explore your role's adventure, resume missions and collect learning rewards.",
       },
-      {
-        property: "og:title",
-        content: "Your Adventure Map — FX Quest",
-      },
-      {
-        property: "og:description",
-        content:
-          "Campus Crossing, Cherry Blossom Trail and Little Shop Harbour await.",
-      },
+      { property: "og:title", content: "Your Adventure Map — FX Quest" },
+      { property: "og:description", content: "Campus Crossing, Cherry Blossom Trail and Little Shop Harbour await." },
       { property: "og:type", content: "website" },
-      {
-        name: "twitter:card",
-        content: "summary_large_image",
-      },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: MapPage,
 });
 
-// Mission markers are positioned relative to the map.
-// These percentages work for all three original map images.
-const POS = [
-  "left-[2%] top-[4%] lg:left-[5%] lg:top-[7%]",
-  "right-[2%] top-[4%] lg:right-[5%] lg:top-[7%]",
-  "left-[2%] bottom-[4%] lg:left-[5%] lg:bottom-[7%]",
-  "right-[2%] bottom-[4%] lg:right-[5%] lg:bottom-[7%]",
+/* ----------------------------------------------------------------
+   Quest nodes sit ON the islands, as [left %, top %] of the map image.
+   These are tuned for world-map_full.png. If a node is slightly off
+   its island on your screen, nudge the numbers here.
+---------------------------------------------------------------- */
+const WORLD_POS: [number, number][] = [
+  [34, 25], // top-left island
+  [74, 31], // top-right island
+  [30, 64], // bottom-left island
+  [69, 68], // bottom-right island
 ];
+
+// Traveller and business maps have different layouts, so they get safe
+// quadrant positions. Tune these after checking each map.
+const OTHER_POS: [number, number][] = [
+  [25, 26],
+  [75, 26],
+  [25, 72],
+  [75, 72],
+];
+
+type NodeState = "locked" | "open" | "cleared";
+
+function badgeClass(state: NodeState, isMain: boolean) {
+  if (state === "locked") return "bg-gradient-to-b from-[#e8f0f6] to-[#b6c6d5] text-[#5f7690]";
+  if (state === "cleared") return "bg-gradient-to-b from-[#74e0a0] to-[#2fb872] text-white";
+  return isMain
+    ? "bg-gradient-to-b from-[#fbd461] to-[#f0a81f] text-[#52317b]"
+    : "bg-gradient-to-b from-[#5fb4f8] to-[#2b6fd6] text-white";
+}
+
+function stateLabel(state: NodeState, isMain: boolean) {
+  if (state === "locked") return "Locked";
+  if (state === "cleared") return "Cleared";
+  return isMain ? "Story quest" : "Side quest";
+}
+
+function StateIcon({ state, className }: { state: NodeState; className?: string }) {
+  if (state === "locked") return <Lock className={className} aria-hidden="true" />;
+  if (state === "cleared") return <Check className={className} strokeWidth={3.5} aria-hidden="true" />;
+  return <Star className={cn(className, "fill-current")} aria-hidden="true" />;
+}
+
+/* The round badge and name tag shown on each island. */
+function NodeBody({ name, state, isMain }: { name: string; state: NodeState; isMain: boolean }) {
+  return (
+    <>
+      <span
+        className={cn(
+          "relative flex h-11 w-11 items-center justify-center rounded-full border-[3px] border-white shadow-[0_6px_14px_rgba(21,81,130,.35)] transition-shadow sm:h-12 sm:w-12 lg:h-14 lg:w-14",
+          "group-focus-visible:ring-4 group-focus-visible:ring-[#2b6fd6]/60",
+          badgeClass(state, isMain),
+        )}
+      >
+        {isMain && state === "open" && (
+          <span
+            aria-hidden="true"
+            className="absolute inset-0 rounded-full bg-[#fbd461] opacity-60 motion-safe:animate-ping"
+          />
+        )}
+        <StateIcon state={state} className="relative h-5 w-5 lg:h-6 lg:w-6" />
+      </span>
+
+      <span
+        aria-hidden="true"
+        className={cn(
+          "hidden flex-col items-center rounded-2xl border-2 px-3.5 py-1 text-center shadow-[0_4px_0_rgba(187,125,61,.2),0_8px_16px_rgba(21,81,130,.18)] sm:flex",
+          state === "locked"
+            ? "border-white/80 bg-white/75 text-slate-500"
+            : "border-[#efc478] bg-[#fff5dc]/95 text-[#373268]",
+        )}
+      >
+        <b className="font-display text-xs font-extrabold leading-tight lg:text-sm">{name}</b>
+        <span className="text-[10px] font-bold leading-tight opacity-75 lg:text-xs">{stateLabel(state, isMain)}</span>
+      </span>
+    </>
+  );
+}
 
 function MapPage() {
   const g = useGame();
   const r = roleInfo(g.role);
 
-  // No role selected yet.
   if (!r) {
     return (
       <Page>
         <div className="mx-auto max-w-xl py-12 text-center">
-          <h1 className="font-display text-3xl font-bold">
-            A dream awaits you
-          </h1>
-
-          <Pip className="mx-auto mt-6 max-w-lg">
-            Let's choose your story before setting off.
-          </Pip>
-
+          <h1 className="font-display text-3xl font-bold">A dream awaits you</h1>
+          <Pip className="mx-auto mt-6 max-w-lg">Let's choose your story before setting off.</Pip>
           <Button asChild variant="quest" className="mt-6">
             <Link to="/characters">Choose Role</Link>
           </Button>
@@ -101,407 +125,246 @@ function MapPage() {
     );
   }
 
-  // Preserve the existing chapter filtering and role logic.
-  const main = CHAPTERS.find(
-    (chapter) => chapter.id === r.mission
-  );
-
+  // Original role-based chapter logic remains unchanged.
+  const main = CHAPTERS.find((chapter) => chapter.id === r.mission);
   const chapters = mapChapters(
-    CHAPTERS.filter(
-      (chapter) =>
-        chapter.id !== "traveller" ||
-        g.role === "traveller"
-    ),
-    r.id
+    CHAPTERS.filter((chapter) => chapter.id !== "traveller" || g.role === "traveller"),
+    r.id,
   );
+  const map = r.id === "traveller" ? travellerMap : r.id === "business" ? businessMap : worldMap;
+  const positions = map === worldMap ? WORLD_POS : OTHER_POS;
+  const mainCompleted = main !== undefined && g.completed.includes(main.id);
 
-  // Select the original map for the active role.
-  const map =
-    r.id === "traveller"
-      ? travellerMap
-      : r.id === "business"
-        ? businessMap
-        : worldMap;
+  const shown = chapters.slice(0, 4);
+  const cleared = shown.filter((chapter) => g.completed.includes(chapter.id)).length;
 
-  const mainCompleted =
-    main !== undefined &&
-    g.completed.includes(main.id);
+  const stateOf = (chapter: (typeof chapters)[number]): NodeState =>
+    g.completed.includes(chapter.id)
+      ? "cleared"
+      : chapterUnlocked(chapter, g.completed, r.id)
+        ? "open"
+        : "locked";
 
   return (
     <Page fullWidth>
-      {/* ==========================================
-          PAGE CONTENT WRAPPER
-          ========================================== */}
-
-      <div
-  className="
-    mx-auto
-    w-full
-    min-w-0
-    max-w-[1650px]
-    px-4
-    pt-5
-    pb-8
-    sm:px-6
-    sm:pt-6
-    lg:px-8
-    lg:pt-7
-    2xl:px-10
-  "
->
-{/* ==========================================
-    SOFT PASTEL ADVENTURE HEADER
-    Keeps the role, avatar, mission and navigation.
-========================================== */}
-<section
-  aria-label="Your adventure"
-  className="relative isolate mb-5 overflow-hidden rounded-[26px] border-2 border-[#f5d38a] bg-[#b5e9f3] shadow-[0_12px_28px_rgba(57,122,157,0.12)] sm:rounded-[32px]"
->
-  {/* Slightly desaturated background to match the illustrated map. */}
-  <img
-    src={adventureHeaderBg}
-    alt=""
-    aria-hidden="true"
-    className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center saturate-[.76] brightness-[1.04]"
-  />
-  {/* A gentle tint unifies the artwork with the rest of the page. */}
-  <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#d6f3f8]/45 via-[#e2f5fa]/15 to-[#f7e9e3]/20" />
-
-  <div className="relative flex flex-col gap-3 px-4 py-5 sm:px-7 sm:py-6 lg:min-h-[235px] lg:flex-row lg:items-center lg:gap-6 lg:px-9">
-    {/* Identity: compact on phones, spacious on desktop. */}
-    <div className="flex min-w-0 items-center gap-3 sm:gap-4 lg:min-w-[36%] lg:flex-1">
-      <div className="relative shrink-0 rounded-full border-[3px] border-[#f3ce83] bg-white/90 p-1 shadow-[0_6px_18px_rgba(44,99,136,.16)]">
-        <div className="flex h-[68px] w-[68px] items-center justify-center overflow-hidden rounded-full bg-[#d7f3fa] sm:h-[94px] sm:w-[94px]">
-          <AvatarView avatar={g.avatar ?? r.avatar} size={80} />
-        </div>
-        <Sparkles className="absolute -right-2 -top-2 h-5 w-5 text-amber-500 sm:h-6 sm:w-6" aria-hidden="true" />
-      </div>
-      <div className="min-w-0">
-        <p className="inline-flex max-w-full items-center gap-1 rounded-full border border-[#e7c992] bg-[#fffaf0]/95 px-2.5 py-1 text-[9px] font-bold uppercase tracking-wide text-[#655080] shadow-sm sm:px-3 sm:text-xs">
-          <span>{r.emoji}</span>
-          <span className="truncate">{r.name} · Your Adventure</span>
-        </p>
-        <h1 className="mt-1.5 font-display text-[clamp(1.45rem,5.5vw,2.1rem)] font-extrabold leading-tight tracking-tight text-[#fffdf8] drop-shadow-sm lg:text-[2.55rem]"
-          style={{ WebkitTextStroke: "4px #5287c6", paintOrder: "stroke fill", textShadow: "0 3px 0 rgba(55,111,171,.18)" }}
+      <main className="relative left-1/2 w-screen min-w-0 -translate-x-1/2 overflow-x-clip bg-[#eaf8fd]">
+        {/*
+          One continuous scene: a soft sky at the top holds the header, and the
+          map fades up into it. Nothing covers the islands, and the map keeps
+          its natural proportions (no stretching, no cropping).
+        */}
+        <section
+          aria-label="Your adventure atlas"
+          className="relative isolate bg-[linear-gradient(180deg,#cdf1fd_0,#9fe3f8_150px,#5ec9f2_300px)]"
         >
-          {r.mapName}
-        </h1>
-        <span className="mt-1 inline-flex rounded-full bg-[#ffe4a3]/95 px-3 py-0.5 text-[11px] font-extrabold text-[#624783] shadow-sm sm:text-xs">Your Adventure</span>
-      </div>
-    </div>
+          {/* Soft clouds drifting behind the header */}
+          <span aria-hidden="true" className="pointer-events-none absolute -left-10 top-1 h-14 w-60 rounded-full bg-white/70 blur-xl" />
+          <span aria-hidden="true" className="pointer-events-none absolute left-[38%] top-0 h-12 w-72 rounded-full bg-white/60 blur-xl" />
+          <span aria-hidden="true" className="pointer-events-none absolute -right-8 top-3 h-16 w-64 rounded-full bg-white/70 blur-xl" />
 
-    {/* Mission panel: easy to read over detailed artwork. */}
-    <div className="min-w-0 rounded-[20px] border border-[#e9cc94] bg-[#fffaf0]/90 px-4 py-3 shadow-[0_5px_15px_rgba(57,106,142,.10)] backdrop-blur-[5px] lg:w-[32%] lg:max-w-[460px]">
-      <div className="flex items-center gap-2 text-[#694989]">
-        <Target className="h-5 w-5 shrink-0 text-[#ee7690]" />
-        <span className="font-display text-sm font-extrabold sm:text-base">Your Mission</span>
-      </div>
-      <p className="mt-1 text-sm font-medium leading-relaxed text-[#45466c] sm:text-base">{r.goal}</p>
-    </div>
+          {/* ================= HEADER ================= */}
+          <header className="relative z-20 mx-auto flex w-full max-w-[1800px] flex-wrap items-center gap-x-5 gap-y-3 px-4 pb-3 pt-4 sm:px-6 lg:flex-nowrap lg:px-9 lg:pt-5">
+            <div className="flex min-w-0 flex-1 items-center gap-3 sm:gap-4">
+              <div className="relative shrink-0">
+                <div className="flex h-[68px] w-[68px] items-center justify-center overflow-hidden rounded-full border-[3px] border-[#f7d66d] bg-gradient-to-b from-[#e3f9ff] to-[#b8ecfb] shadow-[0_6px_16px_rgba(21,81,130,.25)] sm:h-[84px] sm:w-[84px]">
+                  <AvatarView avatar={g.avatar ?? r.avatar} size={78} />
+                </div>
+                <Sparkles className="absolute -right-2 -top-2 h-5 w-5 text-amber-400 drop-shadow" aria-hidden="true" />
+              </div>
 
-    {/* Role switch is ALWAYS visible on phones and desktops. */}
-    <Button asChild variant="bubble"
-      className="h-11 w-full shrink-0 gap-2 rounded-full border-2 border-[#e9c88d] bg-[#fffaf0] px-5 font-extrabold text-[#624783] shadow-[0_4px_12px_rgba(78,106,145,.12)] transition-all hover:-translate-y-0.5 hover:bg-white lg:w-auto"
-    >
-      <Link to="/characters"><RefreshCw className="h-4 w-4" />Change Role</Link>
-    </Button>
-  </div>
-</section>
-
-{/* ==========================================
-            RESPONSIVE MAP
-            ========================================== */}
-
-        <div
-          className="
-            relative
-            mx-auto
-            w-full
-            min-w-0
-            overflow-hidden
-            rounded-3xl
-            border-2
-            border-border
-            shadow-soft
-            lg:rounded-[2.5rem]
-          "
-        >
-          {/* 
-            Important:
-            h-auto preserves the original aspect ratio.
-            object-contain prevents any cropping.
-            No fixed height is applied to the image.
-          */}
-          <img
-            src={map}
-            alt={`${r.mapName}, an illustrated adventure for your ${r.name.toLowerCase()} story`}
-            width={1600}
-            height={1008}
-            className="
-              block
-              h-auto
-              w-full
-              object-contain
-            "
-          />
-
-          {/* Subtle gradient improves marker readability. */}
-          <div
-            className="
-              pointer-events-none
-              absolute
-              inset-0
-              bg-gradient-to-t
-              from-black/10
-              via-transparent
-              to-transparent
-            "
-          />
-
-          {/* ======================================
-              RESPONSIVE MISSION MARKERS
-              ====================================== */}
-
-          {chapters.slice(0, 4).map((chapter, index) => {
-            const unlocked = chapterUnlocked(
-              chapter,
-              g.completed,
-              r.id
-            );
-
-            const completed = g.completed.includes(
-              chapter.id
-            );
-
-            return (
-              <div
-                key={chapter.id}
-                className={cn(
-                  "absolute z-20 block max-w-[47%] lg:max-w-[43%]",
-                  POS[index]
-                )}
-              >
-                <Button
-                  asChild={unlocked}
-                  disabled={!unlocked}
-                  variant="bubble"
-                  className="
-                    h-auto
-                    max-w-full
-                    rounded-xl
-                    border border-[#e9c98b]
-                    bg-[#fffaf0]/95
-                    px-1.5 py-1
-                    text-left text-[9px] leading-tight
-                    shadow-[0_3px_10px_rgba(31,87,133,0.18)]
-                    backdrop-blur-sm
-                    transition-transform hover:-translate-y-0.5
-                    sm:rounded-2xl sm:px-3 sm:py-2 sm:text-xs
-                    lg:px-4 lg:py-3 lg:text-sm
-                  "
+              <div className="min-w-0">
+                <p className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-[#e8bf62] bg-[#fff7e7]/95 px-3 py-0.5 text-[11px] font-extrabold text-[#52317b] shadow-sm sm:text-xs">
+                  <span aria-hidden="true">{r.emoji}</span>
+                  <span className="truncate">{r.name} · Your adventure</span>
+                </p>
+                <h1
+                  className="mt-1 font-display font-extrabold leading-[1.05] tracking-tight text-white"
+                  style={{
+                    fontSize: "clamp(1.7rem, 3.2vw, 3rem)",
+                    WebkitTextStroke: "6px #2b6fd6",
+                    paintOrder: "stroke fill",
+                    textShadow: "0 4px 0 rgba(30,70,160,.3)",
+                  }}
                 >
-                  {unlocked ? (
-                    <Link to={chapter.to}>
-                      <span className="flex items-center gap-1 sm:gap-2">
-                        {completed ? (
-                          <Check className="h-3 w-3 shrink-0 sm:h-4 sm:w-4 lg:h-5 lg:w-5" />
-                        ) : (
-                          <Star className="h-3 w-3 shrink-0 sm:h-4 sm:w-4 lg:h-5 lg:w-5" />
-                        )}
-
-                        <span className="min-w-0 whitespace-normal">
-                          <b className="block text-[9px] leading-tight sm:text-xs lg:text-sm">
-                            {chapter.name}
-                          </b>
-
-                          <span className="hidden text-[10px] font-normal sm:block lg:text-xs">
-                            {chapter.id === r.mission
-                              ? "Your story quest"
-                              : "Side quest"}
-                          </span>
-                        </span>
-                      </span>
-                    </Link>
-                  ) : (
-                    <span className="flex items-center gap-1 sm:gap-2">
-                      <Lock className="h-3 w-3 shrink-0 sm:h-4 sm:w-4 lg:h-5 lg:w-5" />
-                      <span className="whitespace-normal text-[9px] leading-tight sm:text-xs lg:text-sm">
-                        {chapter.name}
-                      </span>
-                    </span>
-                  )}
-                </Button>
+                  {r.mapName}
+                </h1>
               </div>
-            );
-          })}
-        </div>
+            </div>
 
-        {/* On smaller screens, accessible quest buttons sit directly below the map
-            rather than obscuring the island illustration. */}
-        <div className="mt-3 grid grid-cols-2 gap-2 lg:hidden">
-          {chapters.slice(0, 4).map((chapter) => {
-            const unlocked = chapterUnlocked(chapter, g.completed, r.id);
-            const completed = g.completed.includes(chapter.id);
-            return unlocked ? (
-              <Link key={chapter.id} to={chapter.to}
-                className="flex min-h-[64px] items-center gap-2 rounded-2xl border border-[#e8d2aa] bg-[#fffaf1] px-3 py-2 text-left text-[#4c4770] shadow-sm transition-transform active:scale-[.98]">
-                {completed ? <Check className="h-4 w-4 shrink-0 text-emerald-600" /> : <Star className="h-4 w-4 shrink-0 text-amber-500" />}
-                <span className="min-w-0"><span className="block text-xs font-extrabold leading-tight">{chapter.name}</span><span className="text-[10px] opacity-70">{chapter.id === r.mission ? "Story quest" : "Side quest"}</span></span>
-              </Link>
-            ) : (
-              <div key={chapter.id} aria-disabled="true" className="flex min-h-[64px] items-center gap-2 rounded-2xl border border-white/70 bg-white/60 px-3 py-2 text-slate-500">
-                <Lock className="h-4 w-4 shrink-0" /><span className="text-xs font-semibold">{chapter.name}</span>
+            <div className="order-3 w-full rounded-[22px] border-2 border-[#efc478] bg-[#fff5dc]/95 px-4 py-2.5 shadow-[0_4px_0_rgba(187,125,61,.17),0_8px_20px_rgba(36,82,131,.12)] sm:order-none sm:w-auto sm:min-w-[260px] sm:max-w-[380px]">
+              <div className="flex items-center gap-2 font-display text-sm font-extrabold text-[#60348b] sm:text-base">
+                <Target className="h-4 w-4 shrink-0 text-[#ec5b79] sm:h-5 sm:w-5" aria-hidden="true" />
+                Your Mission
               </div>
-            );
-          })}
-        </div>
+              <p className="mt-0.5 text-sm font-semibold leading-snug text-[#373268]">{r.goal}</p>
+            </div>
 
-{/* ==========================================
-            PIP GUIDE + CONTINUE BUTTON
-            ========================================== */}
-
-        <div
-          className="
-            mt-5
-            flex
-            flex-col
-            items-stretch
-            gap-4
-            lg:flex-row
-            lg:items-center
-            lg:justify-between
-          "
-        >
-          <div className="min-w-0 flex-1">
-            <Pip size={80}>
-              Let's help your dream come true! Start with{" "}
-              <b>{main?.name}</b>, then explore the side
-              quests.
-            </Pip>
-          </div>
-
-          {main && (
             <Button
               asChild
-              variant="quest"
-              size="lg"
-              className="
-                w-full
-                shrink-0
-                rounded-full
-                shadow-md
-                lg:w-auto
-              "
+              variant="bubble"
+              className="order-2 ml-auto h-11 shrink-0 gap-2 rounded-full border-2 border-[#efc478] bg-[#fff9e9] px-5 font-extrabold text-[#543278] shadow-[0_4px_0_rgba(174,117,58,.2)] transition-transform hover:-translate-y-0.5 hover:bg-white sm:order-none"
             >
-              <Link to={main.to}>
-                {mainCompleted
-                  ? "Replay Story"
-                  : "Continue Adventure"}
-
-                <ArrowRight className="ml-2 h-4 w-4" />
+              <Link to="/characters">
+                <RefreshCw className="h-4 w-4" aria-hidden="true" />
+                Change Role
               </Link>
             </Button>
-          )}
+          </header>
+
+          {/* ================= MAP ================= */}
+          <div className="relative z-10 mx-auto -mt-6 w-full max-w-[2000px] sm:-mt-8 lg:-mt-12">
+            <img
+              src={map}
+              alt={`${r.mapName}, an illustrated adventure for your ${r.name.toLowerCase()} story`}
+              className="block h-auto w-full select-none"
+              style={{
+                // Only the Traveller map is adjusted.
+                // Match the 1672 x 941 proportions of world-map_full.png.
+                aspectRatio: r.id === "traveller" ? "1672 / 941" : undefined,
+                objectFit: r.id === "traveller" ? "fill" : undefined,
+
+                // Reduce Traveller saturation and gently soften contrast.
+                // All other role maps keep their original appearance.
+                filter:
+                  r.id === "traveller"
+                    ? "saturate(0.82) contrast(0.97) brightness(1.02)"
+                    : undefined,
+
+                WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, #000 11%)",
+                maskImage: "linear-gradient(to bottom, transparent 0%, #000 11%)",
+              }}
+            />
+
+            {/* Page colour rises over the bottom edge so the map melts into the content. */}
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-[#eaf8fd] to-transparent lg:h-24"
+            />
+
+            {/* Quest nodes, anchored to their islands */}
+            {shown.map((chapter, index) => {
+              const state = stateOf(chapter);
+              const isMain = chapter.id === r.mission;
+              const [x, y] = positions[index] ?? [50, 50];
+              const requiresName = CHAPTERS.find((item) => item.id === chapter.requires)?.name;
+              const spot = { left: `${x}%`, top: `${y}%` };
+              const base = "group absolute z-20 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-1.5 outline-none";
+
+              return state === "locked" ? (
+                <div
+                  key={chapter.id}
+                  style={spot}
+                  role="img"
+                  aria-label={`${chapter.name}, locked${requiresName ? `. Finish ${requiresName} first` : ""}`}
+                  className={cn(base, "cursor-not-allowed opacity-90")}
+                >
+                  <NodeBody name={chapter.name} state={state} isMain={isMain} />
+                </div>
+              ) : (
+                <Link
+                  key={chapter.id}
+                  to={chapter.to}
+                  style={spot}
+                  aria-label={`${chapter.name}, ${stateLabel(state, isMain).toLowerCase()}`}
+                  className={cn(base, "transition-transform duration-200 hover:-translate-y-[calc(50%+4px)] focus-visible:-translate-y-[calc(50%+4px)]")}
+                >
+                  <NodeBody name={chapter.name} state={state} isMain={isMain} />
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* ================= BELOW THE MAP ================= */}
+        <div className="relative z-10 mx-auto -mt-8 w-full max-w-[1650px] px-4 pb-10 sm:px-6 lg:-mt-12 lg:px-8">
+          {/* Quest bar: guide, progress and the main call to action */}
+          <div className="flex flex-col gap-4 rounded-[28px] border-[3px] border-[#f9d777] bg-[#fff5dc] p-4 shadow-[0_6px_0_rgba(187,125,61,.18),0_16px_36px_rgba(36,82,131,.16)] lg:flex-row lg:items-center lg:justify-between lg:p-5">
+            <div className="min-w-0 flex-1">
+              <Pip size={72}>
+                Let's help your dream come true! Start with <b>{main?.name}</b>, then explore the side quests.
+              </Pip>
+            </div>
+
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center lg:shrink-0">
+              <div className="flex items-center justify-center gap-3 rounded-full border-2 border-[#efc478]/70 bg-white/80 px-4 py-2.5">
+                <div className="flex gap-1.5" aria-hidden="true">
+                  {shown.map((chapter) => (
+                    <span
+                      key={chapter.id}
+                      className={cn(
+                        "h-3 w-3 rounded-full border-2",
+                        g.completed.includes(chapter.id) ? "border-[#2fb872] bg-[#4cc48a]" : "border-[#efc478] bg-white",
+                      )}
+                    />
+                  ))}
+                </div>
+                <span className="text-sm font-extrabold text-[#52317b]">
+                  {cleared} of {shown.length} quests cleared
+                </span>
+              </div>
+
+              {main && (
+                <Button asChild variant="quest" size="lg" className="w-full rounded-full shadow-md sm:w-auto">
+                  <Link to={main.to}>
+                    {mainCompleted ? "Replay Story" : "Continue Adventure"}
+                    <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
+                  </Link>
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {/* Quest cards */}
+          <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {chapters.map((chapter) => {
+              const state = stateOf(chapter);
+              const isMain = chapter.id === r.mission;
+              const requiresName = CHAPTERS.find((item) => item.id === chapter.requires)?.name;
+
+              return (
+                <article
+                  key={chapter.id}
+                  className={cn(
+                    "flex min-w-0 flex-col rounded-[24px] border-2 p-4 shadow-[0_4px_0_rgba(187,125,61,.15)]",
+                    state === "locked" ? "border-white bg-white/60" : "border-[#efc478] bg-[#fffaf0]",
+                  )}
+                >
+                  <div className="flex items-center gap-3">
+                    <span
+                      className={cn(
+                        "flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-[3px] border-white shadow-md",
+                        badgeClass(state, isMain),
+                      )}
+                    >
+                      <StateIcon state={state} className="h-5 w-5" />
+                    </span>
+                    <div className="min-w-0">
+                      <p className="text-xs font-extrabold text-[#2b6fd6]">{stateLabel(state, isMain)}</p>
+                      <h2 className="font-display text-lg font-extrabold leading-tight text-[#24245e]">{chapter.name}</h2>
+                    </div>
+                  </div>
+
+                  <p className="mt-2 text-sm text-[#624c88]">{chapter.concept}</p>
+
+                  {state === "locked" ? (
+                    <p className="mt-auto flex items-center gap-1.5 pt-3 text-xs font-semibold text-slate-500">
+                      <Lock className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                      Finish {requiresName}
+                    </p>
+                  ) : (
+                    <Button asChild variant="bubble" className="mt-auto w-full">
+                      <Link to={chapter.to}>
+                        {state === "cleared" ? "Play again" : "Explore"}
+                        <Star className="ml-2 h-4 w-4" aria-hidden="true" />
+                      </Link>
+                    </Button>
+                  )}
+                </article>
+              );
+            })}
+          </div>
         </div>
-
-        {/* ==========================================
-            MISSION SELECTION CARDS
-            ========================================== */}
-
-        <div
-          className="
-            mt-7
-            grid
-            grid-cols-1
-            gap-3
-            sm:grid-cols-2
-            lg:grid-cols-4
-          "
-        >
-          {chapters.map((chapter) => {
-            const unlocked = chapterUnlocked(
-              chapter,
-              g.completed,
-              r.id
-            );
-
-            const completed = g.completed.includes(
-              chapter.id
-            );
-
-            const isMainMission =
-              chapter.id === r.mission;
-
-            return (
-              <article
-                key={chapter.id}
-                className="
-                  flex
-                  min-w-0
-                  flex-col
-                  rounded-2xl
-                  border-2
-                  border-border
-                  bg-card
-                  p-4
-                  shadow-sm
-                "
-              >
-                <p className="text-xs font-bold text-primary">
-                  {isMainMission
-                    ? "Story quest"
-                    : "Side quest"}
-
-                  {completed && " · Cleared ✓"}
-                </p>
-
-                <h2 className="mt-1 text-lg font-semibold">
-                  {chapter.name}
-                </h2>
-
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {chapter.concept}
-                </p>
-
-                {unlocked ? (
-                  <Button
-                    asChild
-                    variant="bubble"
-                    className="mt-auto w-full pt-3"
-                  >
-                    <Link to={chapter.to}>
-                      Explore
-                      <Star className="ml-2 h-4 w-4" />
-                    </Link>
-                  </Button>
-                ) : (
-                  <p
-                    className="
-                      mt-auto
-                      flex
-                      items-center
-                      gap-1
-                      pt-3
-                      text-xs
-                      text-muted-foreground
-                    "
-                  >
-                    <Lock className="h-3 w-3 shrink-0" />
-
-                    Finish{" "}
-                    {
-                      CHAPTERS.find(
-                        (item) =>
-                          item.id === chapter.requires
-                      )?.name
-                    }
-                  </p>
-                )}
-              </article>
-            );
-          })}
-        </div>
-      </div>
+      </main>
     </Page>
   );
 }
