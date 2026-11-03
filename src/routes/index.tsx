@@ -90,13 +90,13 @@ function Index() {
   className="
     relative
     flex
-    min-h-[max(620px,calc(100dvh-64px))]
+    min-h-[100svh]
     w-full
     items-center
     justify-center
     overflow-hidden
     text-center
-    max-sm:min-h-[calc(100dvh-84px)]
+    max-sm:min-h-[100svh]
     max-sm:items-start
   "
 >
@@ -126,6 +126,15 @@ function Index() {
 via-background/35
 to-transparent
           "
+        />
+
+        {/* Blend the landscape naturally into the lower pastel section. */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-[clamp(160px,32vh,360px)]"
+          style={{
+            background: "linear-gradient(to bottom, rgba(218,247,251,0) 0%, rgba(218,247,251,0.18) 28%, rgba(218,247,251,0.68) 66%, #DAF7FB 100%)",
+          }}
         />
 
         {/* ==========================================
@@ -287,17 +296,11 @@ to-transparent
           EDUCATIONAL CONTENT
       ============================================== */}
 
-      <div
-        className="
-          mx-auto
-          w-full
-          max-w-6xl
-          px-4
-          py-8
-          sm:px-6
-          lg:px-8
-        "
+      <section
+        className="relative w-full"
+        style={{ background: "linear-gradient(180deg, #DAF7FB 0%, #DDF8F2 55%, #F4F9E8 100%)" }}
       >
+        <div className="relative z-10 mx-auto w-full max-w-6xl px-4 pb-14 pt-6 sm:px-6 lg:px-8">
 
         {/* Economic forces */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -379,7 +382,8 @@ to-transparent
           </Panel>
 
         </div>
-      </div>
+        </div>
+      </section>
     </Page>
   );
 }
