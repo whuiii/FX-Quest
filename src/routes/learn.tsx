@@ -16,7 +16,6 @@ import {
   BookOpen,
   Calculator,
   TrendingUp,
-  Sparkles,
   RotateCcw,
   Globe2,
 } from "lucide-react";

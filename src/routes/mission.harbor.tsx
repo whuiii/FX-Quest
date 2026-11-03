@@ -11,7 +11,6 @@ import {
   Package,
   RotateCcw,
   ShieldCheck,
-  Sparkles,
   Star,
   TrendingUp,
   Trophy,
